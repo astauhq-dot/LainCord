@@ -11,13 +11,46 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - name: Extract iOS app sources
+      - name: Build unsigned iPhone app
+        shell: bash
         run: |
-          base64 -D -i LainCord-source.b64 -o LainCord-source.tar.xz
-          tar -xJf LainCord-source.tar.xz
-          cp -R laincord_light/. ./
-      - name: Build unsigned IPA
-        run: bash scripts/build_unsigned_ipa.sh
+          set -euo pipefail
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          mkdir -p Payload/LainCord.app
+          xcrun swiftc -O \
+            -target arm64-apple-ios17.0 \
+            -sdk "$SDK" \
+            -module-name LainCord \
+            -framework SwiftUI \
+            -framework AVFoundation \
+            -framework UniformTypeIdentifiers \
+            LainCord/LainCordApp.swift \
+            -o Payload/LainCord.app/LainCord
+          cat > Payload/LainCord.app/Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleIdentifier</key><string>com.laincord.mobile</string>
+            <key>CFBundleName</key><string>LainCord</string>
+            <key>CFBundleDisplayName</key><string>LainCord</string>
+            <key>CFBundleExecutable</key><string>LainCord</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleShortVersionString</key><string>1.0.0</string>
+            <key>CFBundleVersion</key><string>1</string>
+            <key>MinimumOSVersion</key><string>17.0</string>
+            <key>LSRequiresIPhoneOS</key><true/>
+            <key>UIDeviceFamily</key><array><integer>1</integer></array>
+            <key>CFBundleSupportedPlatforms</key><array><string>iPhoneOS</string></array>
+            <key>NSMicrophoneUsageDescription</key><string>LainCord utilise le microphone pour traiter le son localement.</string>
+            <key>UIApplicationSceneManifest</key>
+            <dict><key>UIApplicationSupportsMultipleScenes</key><false/></dict>
+          </dict>
+          </plist>
+          PLIST
+          plutil -lint Payload/LainCord.app/Info.plist
+          /usr/bin/zip -qry LainCord-unsigned.ipa Payload
+          unzip -l LainCord-unsigned.ipa | head -20
       - uses: actions/upload-artifact@v4
         with:
           name: LainCord-unsigned-IPA
