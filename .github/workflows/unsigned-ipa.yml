@@ -1,0 +1,41 @@
+name: Construire LainCord IPA (non signe)
+
+on:
+  push:
+    branches: [codex/ios-discord-build]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Recuperer les sources
+        uses: actions/checkout@v4
+
+      - name: Afficher la version Xcode
+        run: xcodebuild -version
+
+      - name: Verifier l'isolation de la session Discord
+        run: node --test tests/discord-session.test.cjs
+
+      - name: Verifier la compilation pour le simulateur
+        run: >-
+          xcodebuild -project LainCord.xcodeproj -scheme LainCord
+          -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build
+
+      - name: Compiler l'application pour iPhone (sans signature)
+        shell: bash
+        run: bash scripts/build_unsigned_ipa.sh
+
+      - name: Fournir le fichier IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: LainCord-IPA-non-signe
+          path: LainCord-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
