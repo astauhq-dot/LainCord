@@ -1,0 +1,44 @@
+name: Verify signed IPA with Apple tools
+on:
+  push:
+    branches: [codex/signature-diagnostic]
+    paths: [.github/workflows/signature-diagnostic.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/signature-diagnostic
+      - name: Verify encrypted diagnostic IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIAG_WORK="$(mktemp -d "$RUNNER_TEMP/ipa-check.XXXXXX")"
+          trap 'rm -rf "$DIAG_WORK"' EXIT
+          openssl req -new -newkey rsa:3072 -nodes -x509 -days 1 \
+            -subj '/CN=LainCord temporary diagnostic transport' \
+            -keyout "$DIAG_WORK/transport.key" -out diagnostics/transport-cert.pem \
+            > "$DIAG_WORK/key-generation.log" 2>&1
+          git config user.name 'Codex diagnostics'
+          git config user.email 'codex@users.noreply.github.com'
+          git add diagnostics/transport-cert.pem
+          git commit -m 'Publish temporary diagnostic encryption certificate [skip ci]'
+          git push origin HEAD:codex/signature-diagnostic
+          for attempt in {1..60}; do
+            git fetch -q origin codex/signature-diagnostic
+            if git cat-file -e FETCH_HEAD:diagnostics/payload.cms 2>/dev/null; then
+              git show FETCH_HEAD:diagnostics/payload.cms > "$DIAG_WORK/payload.cms"
+              break
+            fi
+            sleep 10
+          done
+          test -f "$DIAG_WORK/payload.cms"
+          openssl cms -decrypt -inform DER -in "$DIAG_WORK/payload.cms" \
+            -recip diagnostics/transport-cert.pem -inkey "$DIAG_WORK/transport.key" \
+            -out "$DIAG_WORK/input.ipa"
+          python3 diagnostics/check_signature.py "$DIAG_WORK/input.ipa" "$DIAG_WORK"
