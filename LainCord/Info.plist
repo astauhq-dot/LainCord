@@ -26,6 +26,13 @@
 	<string>Autorise la caméra si tu souhaites l’utiliser dans un appel Discord.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>LainCord utilise le microphone pour les appels Discord et le studio audio local.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
