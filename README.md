@@ -26,10 +26,11 @@ et ses propres intégrations conservent leur comportement habituel.
 
 ## État réel de validation
 
-Les tests JavaScript de restriction d’origine, de contexte de frame et
-d’échappement des identifiants ont été exécutés sous Linux. La compilation Swift
-et les essais sur iPhone n’ont pas pu être exécutés dans cet environnement :
-Xcode et un appareil iOS ne sont pas disponibles.
+Les quatre tests JavaScript passent. Les compilations Xcode pour le simulateur
+et pour iPhone ont réussi sur macOS via GitHub Actions le 13 novembre 2026.
+L’IPA arm64 non signé 0.2.0 a été récupéré et son contenu vérifié.
+Exécution : https://github.com/astauhq-dot/LainCord/actions/runs/43390724536
+Les essais de connexion et d’appel sur un iPhone réel restent à faire.
 
 La connexion par token dépend du client web Discord et peut ne plus être
 acceptée. La connexion classique reste accessible séparément. Le vocal utilise
@@ -56,8 +57,8 @@ Le fichier devra être signé avec un certificat et un profil adaptés.
 Sans Mac : déposer **le contenu de ce dossier** à la racine d’un dépôt GitHub,
 y compris `.github`. Dans Actions, lancer **Construire LainCord IPA (non signe)**.
 Le workflow lance les tests JS, compile pour le simulateur puis pour iPhone,
-et fournit l’artefact `LainCord-IPA-non-signe`. Ce workflow est préparé mais n’a
-pas été exécuté depuis cet environnement. Aucun IPA n’est inclus dans ce ZIP.
+et fournit l’artefact `LainCord-IPA-non-signe`. Le workflow a été exécuté avec succès. L’IPA est disponible dans les
+artefacts de l’exécution indiquée ci-dessus (conservation de sept jours).
 
 ## Recette sur appareil
 

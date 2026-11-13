@@ -13,6 +13,6 @@ Ce ZIP contient le **prototype source 0.2.0**, pas un IPA compilé.
 
 Alternative sur Mac : `bash scripts/build_unsigned_ipa.sh` avec Xcode installé.
 
-La compilation, la connexion réelle et les appels iPhone restent à valider.
+La compilation a réussi. La connexion réelle et les appels iPhone restent à valider.
 Une signature réussie ne suffit pas à prouver que les appels fonctionnent.
 Lire le README pour les limitations et les essais à faire.
