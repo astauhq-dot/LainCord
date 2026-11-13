@@ -1,0 +1,26 @@
+name: Build LainCord IPA
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract iOS app sources
+        run: |
+          base64 -D -i LainCord-source.b64 -o LainCord-source.tar.xz
+          tar -xJf LainCord-source.tar.xz
+          cp -R laincord_light/. ./
+      - name: Build unsigned IPA
+        run: bash scripts/build_unsigned_ipa.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LainCord-unsigned-IPA
+          path: LainCord-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
